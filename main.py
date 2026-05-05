@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.widgets import Button, Slider
 
-N_MAX = 5000
+N_MAX  = 5000
+M      = 500   # parallel walks for the distribution panel
+N_BINS = 50
 
 C = dict(
     bg='#0d1117', panel='#161b22',
@@ -19,9 +21,12 @@ def generate():
     tosses    = np.random.randint(0, 2, N_MAX)
     heads     = np.cumsum(tosses)
     n         = np.arange(1, N_MAX + 1)
-    walk['W'] = heads - n / 2      # heads minus expected
-    walk['D'] = 2 * heads - n      # heads minus tails
-    walk['P'] = heads / n          # proportion of heads
+    walk['W'] = heads - n / 2
+    walk['P'] = heads / n
+
+    all_tosses   = np.random.randint(0, 2, (M, N_MAX))
+    all_heads    = np.cumsum(all_tosses, axis=1)
+    walk['W_all'] = all_heads - n[np.newaxis, :] / 2   # shape (M, N_MAX)
 
 
 generate()
@@ -29,6 +34,18 @@ generate()
 n_all = np.arange(1, N_MAX + 1)
 sq    = np.sqrt(n_all)
 WMAX  = sq[-1]   # sqrt(5000) ~= 70.71
+
+HIST_LIM = 1.5 * WMAX
+bins     = np.linspace(-HIST_LIM, HIST_LIM, N_BINS + 1)
+bin_ctrs = (bins[:-1] + bins[1:]) / 2
+bin_w    = bins[1] - bins[0]
+pdf_x    = np.linspace(-HIST_LIM, HIST_LIM, 400)
+
+# Fix the centre-panel y-axis at 1.75× the PDF peak reached at n = N_MAX.
+# At that point σ = ½√N_MAX, so peak height = 1 / (σ √(2π)).  This gives
+# enough headroom at large n without the axis jumping around at small n.
+_sigma_final = 0.5 * np.sqrt(N_MAX)
+Y2_MAX = 1.75 / (_sigma_final * np.sqrt(2 * np.pi))
 
 # ── Figure ────────────────────────────────────────────────────────────────────
 
@@ -53,45 +70,60 @@ for ax in (ax1, ax2, ax3):
 
 ax1.set_title(r'Heads $-$ Expected   $W_n = H_n - n/2$',
               color=C['text'], fontsize=10, pad=8, fontweight='bold')
-ax2.set_title(r'Heads $-$ Tails   $D_n = H_n - T_n$',
+ax2.set_title(fr'Distribution of $W_n$  across {M} simulations',
               color=C['text'], fontsize=10, pad=8, fontweight='bold')
 ax3.set_title(r'Proportion of Heads   $H_n / n$',
               color=C['text'], fontsize=10, pad=8, fontweight='bold')
 
 ax1.set_ylabel(r'$W_n$', color=C['text'], fontsize=10)
-ax2.set_ylabel(r'$D_n$', color=C['text'], fontsize=10)
+ax2.set_ylabel('Probability density', color=C['text'], fontsize=9)
 ax3.set_ylabel(r'$H_n / n$', color=C['text'], fontsize=10)
 
-# ── Static band fills ─────────────────────────────────────────────────────────
+# Panel 2 x-axis is W_n values, not tosses
+ax2.set_xlabel(r'$W_n$', color=C['text'], fontsize=10)
 
-# Panel 1: sigma_W = 0.5*sqrt(n)  →  1-sigma: ±0.5*sqrt(n),  2-sigma: ±sqrt(n)
+# ── Panel 1 static elements ────────────────────────────────────────────────────
+
 ax1.fill_between(n_all, -sq,     sq,     alpha=0.18, color=C['b2'])
 ax1.fill_between(n_all, -0.5*sq, 0.5*sq, alpha=0.38, color=C['b1'])
 ax1.axhline(0, color=C['zero'], lw=0.9, ls='--', alpha=0.7)
 ax1.set_xlim(0, N_MAX)
-ax1.set_ylim(-1.5 * WMAX, 1.5 * WMAX)   # ±3-sigma headroom
+ax1.set_ylim(-1.5 * WMAX, 1.5 * WMAX)
 
-# Panel 2: sigma_D = sqrt(n)  →  1-sigma: ±sqrt(n),  2-sigma: ±2*sqrt(n)
-ax2.fill_between(n_all, -2*sq, 2*sq, alpha=0.18, color=C['b2'])
-ax2.fill_between(n_all, -sq,   sq,   alpha=0.38, color=C['b1'])
-ax2.axhline(0, color=C['zero'], lw=0.9, ls='--', alpha=0.7)
-ax2.set_xlim(0, N_MAX)
-ax2.set_ylim(-3 * WMAX, 3 * WMAX)        # ±3-sigma headroom
+xL = int(N_MAX * 0.60)
+kw = dict(fontsize=7.5, va='bottom')
+ax1.text(xL, 0.5*sq[xL]*1.05, r'$1\sigma = \pm\frac{1}{2}\sqrt{n}$', color=C['b1'], **kw)
+ax1.text(xL,     sq[xL]*1.05, r'$2\sigma = \pm\sqrt{n}$',            color=C['b2'], **kw)
 
-# Panel 3: sigma_P = 0.5/sqrt(n)  →  1-sigma: ±0.5/sqrt(n),  2-sigma: ±1/sqrt(n)
+# ── Panel 2: evolving histogram + normal PDF ───────────────────────────────────
+
+ax2.set_xlim(-HIST_LIM, HIST_LIM)
+ax2.set_ylim(0, Y2_MAX)
+ax2.axvline(0, color=C['zero'], lw=0.9, ls='--', alpha=0.7)
+
+bar2     = ax2.bar(bin_ctrs, np.zeros(N_BINS), width=bin_w * 0.92,
+                   color=C['walk'], alpha=0.75, zorder=3)
+pdf_line, = ax2.plot(pdf_x, np.zeros(len(pdf_x)), color=C['b1'], lw=2.0, zorder=5,
+                     label=r'$\mathcal{N}(0,\,\tfrac{1}{2}\sqrt{n})$')
+
+# Sigma indicator lines (invisible until animation starts)
+vl_1p = ax2.axvline(x=0, color=C['b1'], lw=1.0, ls='--', alpha=0.0)
+vl_1m = ax2.axvline(x=0, color=C['b1'], lw=1.0, ls='--', alpha=0.0)
+vl_2p = ax2.axvline(x=0, color=C['b2'], lw=1.0, ls='--', alpha=0.0)
+vl_2m = ax2.axvline(x=0, color=C['b2'], lw=1.0, ls='--', alpha=0.0)
+
+sigma_ann = ax2.text(0.97, 0.97, '', transform=ax2.transAxes,
+                     ha='right', va='top', color=C['text'], fontsize=8,
+                     bbox=dict(boxstyle='round,pad=0.3', facecolor=C['panel'], alpha=0.8))
+
+# ── Panel 3 static elements ────────────────────────────────────────────────────
+
 ax3.fill_between(n_all, 0.5 - 1/sq,    0.5 + 1/sq,    alpha=0.18, color=C['b2'])
 ax3.fill_between(n_all, 0.5 - 0.5/sq,  0.5 + 0.5/sq,  alpha=0.38, color=C['b1'])
 ax3.axhline(0.5, color=C['zero'], lw=0.9, ls='--', alpha=0.7)
 ax3.set_xlim(0, N_MAX)
 ax3.set_ylim(0, 1)
 
-# Band labels
-xL = int(N_MAX * 0.60)
-kw = dict(fontsize=7.5, va='bottom')
-ax1.text(xL, 0.5*sq[xL]*1.05, r'$1\sigma = \pm\frac{1}{2}\sqrt{n}$', color=C['b1'], **kw)
-ax1.text(xL,     sq[xL]*1.05, r'$2\sigma = \pm\sqrt{n}$',            color=C['b2'], **kw)
-ax2.text(xL,     sq[xL]*1.05, r'$1\sigma = \pm\sqrt{n}$',            color=C['b1'], **kw)
-ax2.text(xL, 2*sq[xL]*1.05,   r'$2\sigma = \pm 2\sqrt{n}$',          color=C['b2'], **kw)
 x3 = 60
 ax3.text(x3, 0.5 + 0.5/np.sqrt(x3) + 0.03, r'$1\sigma$', color=C['b1'], fontsize=7.5)
 ax3.text(x3, 0.5 + 1/np.sqrt(x3)   + 0.03, r'$2\sigma$', color=C['b2'], fontsize=7.5)
@@ -99,7 +131,6 @@ ax3.text(x3, 0.5 + 1/np.sqrt(x3)   + 0.03, r'$2\sigma$', color=C['b2'], fontsize
 # ── Walk lines (start empty) ──────────────────────────────────────────────────
 
 line1, = ax1.plot([], [], color=C['walk'], lw=0.9)
-line2, = ax2.plot([], [], color=C['walk'], lw=0.9)
 line3, = ax3.plot([], [], color=C['walk'], lw=0.9)
 
 # ── Title counter ─────────────────────────────────────────────────────────────
@@ -133,9 +164,32 @@ def step(_frame):
     end        = min(state['k'] + max(1, int(slider.val)), N_MAX)
     state['k'] = end
     x          = n_all[:end]
+
+    # Panel 1: single walk trajectory
     line1.set_data(x, walk['W'][:end])
-    line2.set_data(x, walk['D'][:end])
+
+    # Panel 2: distribution of W_n across M walks at step n = end
+    w_vals         = walk['W_all'][:, end - 1]
+    counts, _      = np.histogram(w_vals, bins=bins, density=True)
+    for rect, h in zip(bar2.patches, counts):
+        rect.set_height(h)
+
+    sigma    = 0.5 * np.sqrt(end)
+    pdf_vals = np.exp(-0.5 * (pdf_x / sigma) ** 2) / (sigma * np.sqrt(2 * np.pi))
+    pdf_line.set_ydata(pdf_vals)
+
+    vl_1p.set_xdata([ sigma,  sigma])
+    vl_1m.set_xdata([-sigma, -sigma])
+    vl_2p.set_xdata([ 2*sigma,  2*sigma])
+    vl_2m.set_xdata([-2*sigma, -2*sigma])
+    for vl in (vl_1p, vl_1m, vl_2p, vl_2m):
+        vl.set_alpha(0.75)
+
+    sigma_ann.set_text(f'σ = {sigma:.1f}')
+
+    # Panel 3: proportion of heads
     line3.set_data(x, walk['P'][:end])
+
     caption.set_text(f'Coin Toss Random Walk  —  n = {end:,}')
     if end >= N_MAX:
         state['go'] = False
@@ -162,9 +216,18 @@ def reset(_event):
     btn_go.label.set_text('Start')
     btn_go.ax.set_facecolor('#238636')
     generate()
+
     line1.set_data([], [])
-    line2.set_data([], [])
     line3.set_data([], [])
+
+    for rect in bar2.patches:
+        rect.set_height(0)
+    pdf_line.set_ydata(np.zeros(len(pdf_x)))
+    for vl in (vl_1p, vl_1m, vl_2p, vl_2m):
+        vl.set_alpha(0.0)
+    sigma_ann.set_text('')
+    ax2.set_ylim(0, Y2_MAX)
+
     caption.set_text('Coin Toss Random Walk  —  n = 0')
     fig.canvas.draw_idle()
 
