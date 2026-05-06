@@ -9,7 +9,7 @@ from src.simulations import (
 )
 
 SIMULATIONS = [
-    (1, "Simulation 1",          simulation_1),
+    (1, "Peter and Paul — Coin Flip Game", simulation_1),
     (2, "Simulation 2",          simulation_2),
     (3, "Coin Toss Random Walk", simulation_3),
     (4, "Simulation 4",          simulation_4),
