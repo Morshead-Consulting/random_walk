@@ -4,6 +4,28 @@ import matplotlib.animation as animation
 from matplotlib.widgets import Button, Slider
 
 
+def generate_walk(n_max: int, m: int) -> dict:
+    """Generate one random walk and m parallel walks of length n_max.
+
+    Returns a dict with:
+      W     – single walk: cumulative heads minus expected  (shape n_max,)
+      P     – single walk: proportion of heads             (shape n_max,)
+      W_all – m parallel walks, same definition as W       (shape m × n_max)
+    """
+    tosses = np.random.randint(0, 2, n_max)
+    heads  = np.cumsum(tosses)
+    n      = np.arange(1, n_max + 1)
+
+    all_tosses = np.random.randint(0, 2, (m, n_max))
+    all_heads  = np.cumsum(all_tosses, axis=1)
+
+    return {
+        'W':     heads - n / 2,
+        'P':     heads / n,
+        'W_all': all_heads - n[np.newaxis, :] / 2,
+    }
+
+
 def run():
     N_MAX  = 5000
     M      = 500
@@ -16,20 +38,11 @@ def run():
         text='#e6edf3', grid='#21262d',
     )
 
-    walk = {}
+    walk = generate_walk(N_MAX, M)
 
-    def generate():
-        tosses    = np.random.randint(0, 2, N_MAX)
-        heads     = np.cumsum(tosses)
-        n         = np.arange(1, N_MAX + 1)
-        walk['W'] = heads - n / 2
-        walk['P'] = heads / n
-
-        all_tosses    = np.random.randint(0, 2, (M, N_MAX))
-        all_heads     = np.cumsum(all_tosses, axis=1)
-        walk['W_all'] = all_heads - n[np.newaxis, :] / 2
-
-    generate()
+    def regenerate():
+        new = generate_walk(N_MAX, M)
+        walk.update(new)
 
     n_all = np.arange(1, N_MAX + 1)
     sq    = np.sqrt(n_all)
@@ -209,7 +222,7 @@ def run():
         state['k']  = 0
         btn_go.label.set_text('Start')
         btn_go.ax.set_facecolor('#238636')
-        generate()
+        regenerate()
 
         line1.set_data([], [])
         line3.set_data([], [])
