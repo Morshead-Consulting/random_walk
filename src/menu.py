@@ -10,7 +10,7 @@ from src.simulations import (
 
 SIMULATIONS = [
     (1, "Peter and Paul — Coin Flip Game", simulation_1),
-    (2, "Simulation 2",          simulation_2),
+    (2, "The Arcsine Law — Time in Profit", simulation_2),
     (3, "Coin Toss Random Walk", simulation_3),
     (4, "Simulation 4",          simulation_4),
     (5, "Simulation 5",          simulation_5),
