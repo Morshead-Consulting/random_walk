@@ -11,11 +11,13 @@ random_walk/
 │   ├── menu.py                    # Simulation selection menu
 │   └── simulations/
 │       ├── simulation_1.py        # Peter and Paul — Coin Flip Game
+│       ├── simulation_2.py        # The Arcsine Law — Time in Profit
 │       ├── simulation_3.py        # Coin Toss Random Walk
-│       ├── simulation_{2,4,5,6}.py  # Placeholders for future simulations
+│       ├── simulation_{4,5,6}.py  # Placeholders for future simulations
 │       └── _placeholder.py        # Shared placeholder window
 └── tests/
     ├── test_simulation_1.py       # Test suite for simulation 1
+    ├── test_simulation_2.py       # Test suite for simulation 2
     └── test_simulation_3.py       # Test suite for simulation 3
 ```
 
@@ -73,6 +75,52 @@ Each flip is a Bernoulli trial with p = ½. Let profit_n = (heads − tails) aft
 | **Return to Menu** | Close the window and return to the simulation menu |
 
 Runs that reach all 500 flips are archived to the gallery automatically.
+
+---
+
+## Simulation 2 — The Arcsine Law: Time in Profit
+
+An interactive demonstration of one of probability's most surprising results: in a fair coin-flip game, the most likely outcome is that one player leads for almost the entire game — not that the lead changes hands roughly equally.
+
+### The question
+
+Peter and Paul play the coin-flip game from Simulation 1 for N flips. After the game, what fraction of the time was Peter in profit? Students typically guess the answer peaks near 50% — that is, they expect Peter and Paul to swap the lead roughly equally. The arcsine law says the opposite is true.
+
+### What it shows
+
+| Panel | Content |
+|-------|---------|
+| Left — Peter's Profit | One animated walk with green/red shading and a live **"time in profit"** counter. ±1σ and ±2σ bands are labelled as in Simulation 1. |
+| Right — Distribution of Time in Profit | A histogram that grows with each completed run, showing the fraction of flips Peter spent in profit. With enough runs the U-shape of the arcsine distribution becomes clear. Toggle **Show Theory** to overlay the theoretical curve. |
+
+### The mathematics
+
+Let L_n be the number of steps (out of n) for which Peter's profit is strictly positive. As n → ∞, the fraction L_n / n converges in distribution to the **arcsine distribution** — a Beta(½, ½) random variable whose PDF is:
+
+$$f(p) = \frac{1}{\pi\sqrt{p(1-p)}}, \quad p \in (0,1)$$
+
+Key properties of this distribution:
+
+- **Mean = ½** — on average Peter is in profit half the time.
+- **Variance = ⅛** — but there is enormous spread around that average.
+- **U-shaped PDF** — the density is minimised at p = ½ and diverges at both endpoints. Spending roughly half the time in profit is actually the *least* likely outcome; spending almost all (or almost none) of the time in profit is the most likely.
+- The probability of Peter being in profit for fewer than 10% or more than 90% of the time is about **40%** — far higher than intuition suggests.
+
+The "Show Theory" overlay plots f(p) scaled to match the histogram's bin width, confirming that the empirical distribution converges to this U-shaped curve.
+
+### Controls
+
+| Control | Action |
+|---------|--------|
+| **Start / Stop** | Begin or pause the animation for the current walk |
+| **New Run** | Stop and generate a fresh walk (does not reset the histogram) |
+| **Reset** | Clear the histogram and start fresh |
+| **Show / Hide Theory** | Toggle the arcsine curve overlay on the histogram |
+| **Speed slider** | Set how many flips are revealed per frame (1–50) |
+| **Coin flips N slider** | Set the length of each walk (20–1,000); takes effect on the next New Run or Reset |
+| **Return to Menu** | Close the window and return to the simulation menu |
+
+Each completed walk (all N flips) adds one data point to the histogram. Run many walks to see the U-shape emerge.
 
 ---
 
