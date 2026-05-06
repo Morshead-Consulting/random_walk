@@ -10,10 +10,12 @@ random_walk/
 ├── src/
 │   ├── menu.py                    # Simulation selection menu
 │   └── simulations/
-│       ├── simulation_3.py        # Coin Toss Random Walk (see below)
-│       ├── simulation_{1,2,4,5,6}.py  # Placeholders for future simulations
+│       ├── simulation_1.py        # Peter and Paul — Coin Flip Game
+│       ├── simulation_3.py        # Coin Toss Random Walk
+│       ├── simulation_{2,4,5,6}.py  # Placeholders for future simulations
 │       └── _placeholder.py        # Shared placeholder window
 └── tests/
+    ├── test_simulation_1.py       # Test suite for simulation 1
     └── test_simulation_3.py       # Test suite for simulation 3
 ```
 
@@ -33,6 +35,44 @@ A numbered menu is printed in the terminal. Enter a number to launch a simulatio
 ```bash
 uv run pytest
 ```
+
+---
+
+## Simulation 1 — Peter and Paul: Coin Flip Game
+
+An interactive visualisation of a simple gambling game between two players.
+
+### The game
+
+Peter and Paul flip a fair coin repeatedly. Peter wins a penny from Paul on heads, and loses a penny to Paul on tails. The game runs for 500 flips.
+
+### What it shows
+
+| Panel | Content |
+|-------|---------|
+| Left — Peter's Profit | Peter's cumulative profit over time. Green fill above zero (Peter leads), red fill below (Paul leads). ±1σ and ±2σ bands show the expected spread. |
+| Right — Previous Runs | A growing gallery of archived runs, each in a distinct colour, showing how different individual paths can be despite sharing the same underlying distribution. |
+
+### The mathematics
+
+Each flip is a Bernoulli trial with p = ½. Let profit_n = (heads − tails) after n flips:
+
+- **E[profit_n] = 0** — the game is fair.
+- **Var(profit_n) = n**, giving **SD(profit_n) = √n**.
+- **Parity invariant**: profit_n ≡ n (mod 2) — after an odd number of flips the profit is always odd, and vice versa.
+- profit_n = 2 W_n where W_n is the walk from Simulation 3, so its standard deviation is exactly double.
+- By the Central Limit Theorem, profit_n is approximately Normal(0, √n) for large n.
+
+### Controls
+
+| Control | Action |
+|---------|--------|
+| **Start / Stop** | Begin or pause the animation |
+| **New Run** | Archive the current run to the gallery and start a fresh one |
+| **Speed slider** | Set how many flips are revealed per frame (1–50) |
+| **Return to Menu** | Close the window and return to the simulation menu |
+
+Runs that reach all 500 flips are archived to the gallery automatically.
 
 ---
 
