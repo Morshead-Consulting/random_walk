@@ -122,6 +122,20 @@ The "Show Theory" overlay plots f(p) scaled to match the histogram's bin width, 
 
 Each completed walk (all N flips) adds one data point to the histogram. Run many walks to see the U-shape emerge.
 
+### Screenshots
+
+**Peter leads for almost the entire game (98.5% of flips in profit)**
+
+![Peter leads throughout](visualisations/Arcsine_Peter_leads_throughout.jpg)
+
+**Paul leads for almost the entire game (only 10.5% of flips in profit for Peter)**
+
+![Paul leads throughout](visualisations/Arcsine_Paul_leads_throughout.jpg)
+
+**After 500 runs — the U-shaped arcsine distribution emerges, with theory overlay**
+
+![500 runs with theory](visualisations/Arcsine_500_runs_with_theory.jpg)
+
 ---
 
 ## Simulation 3 — Coin Toss Random Walk
