@@ -1,8 +1,46 @@
-# Coin Toss Random Walk — Teaching Simulation
+# Random Walk Simulations — Teaching Tool
 
-An interactive visualisation of fluctuations in a random walk, built with Python and Matplotlib.
+An interactive collection of probability and statistics simulations, built with Python and Matplotlib.
 
-## What it shows
+## Project structure
+
+```
+random_walk/
+├── main.py                        # Entry point — run this
+├── src/
+│   ├── menu.py                    # Simulation selection menu
+│   └── simulations/
+│       ├── simulation_3.py        # Coin Toss Random Walk (see below)
+│       ├── simulation_{1,2,4,5,6}.py  # Placeholders for future simulations
+│       └── _placeholder.py        # Shared placeholder window
+└── tests/
+    └── test_simulation_3.py       # Test suite for simulation 3
+```
+
+## Running the tool
+
+Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync              # install dependencies (first run only)
+uv run python main.py
+```
+
+A numbered menu is printed in the terminal. Enter a number to launch a simulation; close its window (or click **Return to Menu**) to go back to the menu. Enter `0` to quit.
+
+## Running the tests
+
+```bash
+uv run pytest
+```
+
+---
+
+## Simulation 3 — Coin Toss Random Walk
+
+An interactive visualisation of fluctuations in a random walk.
+
+### What it shows
 
 When a fair coin is tossed repeatedly, three quantities evolve in distinctly different ways:
 
@@ -14,7 +52,7 @@ When a fair coin is tossed repeatedly, three quantities evolve in distinctly dif
 
 The centre panel makes the Central Limit Theorem visible: at small n the histogram is lumpy and discrete; at large n it converges to the overlaid Normal(0, ½√n) curve. The ±1σ and ±2σ dashed lines track the growing spread, mirroring the shaded bands on the left panel.
 
-## The mathematics
+### The mathematics
 
 Each toss is a Bernoulli trial with p = ½. After n tosses:
 
@@ -27,23 +65,13 @@ The centre panel runs 500 independent walks in parallel and displays their histo
 
 The shaded bands on each panel show the 1σ (brighter blue) and 2σ (darker blue) regions. A normally distributed walk stays within 2σ about 95% of the time.
 
-## Running the simulation
-
-Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/).
-
-```bash
-uv sync          # install dependencies (first run only)
-uv run python main.py
-```
-
-Dependencies (`numpy`, `matplotlib`) are declared in `pyproject.toml` and installed automatically by `uv sync`.
-
-## Controls
+### Controls
 
 | Control | Action |
 |---------|--------|
 | **Start / Stop** | Begin or pause the animation |
-| **Reset** | Generate a new random walk |
+| **Reset** | Generate a new random walk and restart |
 | **Speed slider** | Set how many tosses are revealed per frame (1–200) |
+| **Return to Menu** | Close the window and return to the simulation menu |
 
 The n counter in the title updates as the walk progresses. At the default speed of 20 tosses per frame (~30 fps) the full 5,000-toss walk completes in roughly 8 seconds.
