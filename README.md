@@ -80,7 +80,7 @@ Runs that reach all 500 flips are archived to the gallery automatically.
 
 ## Simulation 2 — The Arcsine Law: Time in Profit
 
-An interactive demonstration of one of probability's most surprising results: in a fair coin-flip game, the most likely outcome is that one player leads for almost the entire game — not that the lead changes hands roughly equally.
+An interactive demonstration of a surprising result: in a fair coin-flip game, the most likely outcome is that one player leads for almost the entire game — not that the lead changes hands roughly equally.
 
 ### The question
 
